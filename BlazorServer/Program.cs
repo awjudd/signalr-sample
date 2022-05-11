@@ -8,6 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddCors(options => options.AddPolicy("AllowAll", p => p.SetIsOriginAllowed(h => true)
+    .AllowCredentials()    
+    .AllowAnyMethod()
+    .AllowAnyHeader()));
+
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -18,6 +24,8 @@ builder.Services.AddResponseCompression(opts =>
 });
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -33,9 +41,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.MapBlazorHub();
+app.MapBlazorHub()
+    .AllowAnonymous();
 app.MapHub<ChatHub>("/chat-hub");
 app.MapHub<CounterHub>("/counter-hub");
+
 app.MapFallbackToPage("/_Host");
 
 app.Run();
